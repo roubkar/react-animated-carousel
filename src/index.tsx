@@ -4,12 +4,12 @@ import { Animated } from "r-animated";
 interface ICarouselProps
 {
   slides: React.ReactElement[];
-  duration: number;
-  animationDuration: number;
-  animationTimingFunction: string;
-  animationType: "fade" | "slideLeft" | "slideRight";
-  animationDelay: number;
-  customAnimation: {
+  duration?: number;
+  animationDuration?: number;
+  animationTimingFunction?: string;
+  animationType?: "fade" | "slideLeft" | "slideRight";
+  animationDelay?: number;
+  customAnimation?: {
     active: {
       from: React.CSSProperties,
       to: React.CSSProperties
@@ -26,7 +26,7 @@ interface ICarouselState
   nextActive: number;
 }
 
-export default function Carousel(props: ICarouselProps)
+export default function Carousel(props: ICarouselProps): React.ReactElement
 {
   let [state, dispatch] = React.useReducer(
     (state: ICarouselState, action: { type: string }) =>
