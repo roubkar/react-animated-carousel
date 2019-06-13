@@ -1,0 +1,45 @@
+{
+  "name": "react-animated-carousel",
+  "version": "1.0.0",
+  "description": "A simple carousel component for React",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roubkar/react-animated-carousel.git"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -cw",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "r-animated": "^1.0.3"
+  },
+  "peerDependencies": {
+    "react": "^16.8.6"
+  },
+  "devDependencies": {
+    "react": "^16.8.6",
+    "rollup": "^1.14.6",
+    "rollup-plugin-typescript2": "^0.21.1",
+    "typescript": "^3.5.1"
+  },
+  "keywords": [
+    "react",
+    "animation",
+    "animated",
+    "carousel",
+    "slide"
+  ],
+  "author": "Ruben Karapetyan <karapetyanrouben@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/roubkar/react-animated-carousel/issues"
+  },
+  "homepage": "https://github.com/roubkar/react-animated-carousel#readme"
+}
