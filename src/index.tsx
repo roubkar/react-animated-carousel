@@ -85,7 +85,7 @@ export default function Carousel(props: ICarouselProps)
         key={`active${state.nextActive}`}
       >
         {style => (
-          <div style={{ ...styles, ...style }} className="animated-carousel-item">
+          <div style={{ ...styles.item, ...style }} className="animated-carousel-item">
             {props.slides[state.active]}
           </div>
         )}
@@ -97,10 +97,10 @@ export default function Carousel(props: ICarouselProps)
         animationTypes[props.animationType].next}
         {...props.customAnimation && props.customAnimation.next}
         delay={props.animationDelay}
-        key={`${state.nextActive}`}
+        key={`next${state.nextActive}`}
       >
         {(style: React.CSSProperties) => (
-          <div style={{ ...styles, ...style }} className="animated-carousel-item">
+          <div style={{ ...styles.item, ...style }} className="animated-carousel-item">
             {props.slides[state.nextActive]}
           </div>
         )}
@@ -112,11 +112,14 @@ export default function Carousel(props: ICarouselProps)
 let styles = {
   container: {
     position: "relative",
-    overflow: "hidden"
+    overflow: "hidden",
+    width: "100%",
+    height: "100%"
   },
   item: {
     position: "absolute",
-    width: "100%"
+    width: "100%",
+    height: "100%"
   }
 };
 
