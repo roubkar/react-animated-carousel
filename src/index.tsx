@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Animated } from "r-animated";
+import { useAnimation } from "r-animated";
 
 interface ICarouselProps
 {
@@ -16,7 +16,8 @@ interface ICarouselProps
     },
     next: {
       from: React.CSSProperties,
-      to: React.CSSProperties}
+      to: React.CSSProperties
+    }
   }
 }
 
@@ -52,6 +53,25 @@ export default function Carousel(props: ICarouselProps): React.ReactElement
     },
     { active: -1, nextActive: 0, reset: false }
   );
+
+  let activeStyles: React.CSSProperties = useAnimation({
+    duration: props.animationDuration,
+    timingFunction: props.animationTimingFunction,
+    ...animationTypes[props.animationType] && animationTypes[props.animationType].active,
+    ...props.customAnimation && props.customAnimation.active,
+    delay: props.animationDelay || 100,
+    reset: state.reset
+  });
+
+  let nextStyles: React.CSSProperties = useAnimation({
+    duration: props.animationDuration,
+    timingFunction: props.animationTimingFunction,
+    ...animationTypes[props.animationType] && animationTypes[props.animationType].next,
+    ...props.customAnimation && props.customAnimation.next,
+    delay: props.animationDelay || 100,
+    reset: state.reset
+  });
+
   React.useEffect(() =>
   {
     let timerId = setTimeout(() =>
@@ -76,38 +96,15 @@ export default function Carousel(props: ICarouselProps): React.ReactElement
       clearTimeout(timerId);
     };
   }, [state.active]);
+
   return (
     <div style={styles.container} className="animated-carousel-container">
-      <Animated
-        duration={props.animationDuration}
-        timingFunction={props.animationTimingFunction}
-        {...animationTypes[props.animationType] &&
-        animationTypes[props.animationType].active}
-        {...props.customAnimation && props.customAnimation.active}
-        delay={props.animationDelay || 100}
-        reset={state.reset}
-      >
-        {style => (
-          <div style={{ ...styles.item, ...style }} className="animated-carousel-item">
-            {props.slides[state.active]}
-          </div>
-        )}
-      </Animated>
-      <Animated
-        duration={props.animationDuration}
-        timingFunction={props.animationTimingFunction}
-        {...animationTypes[props.animationType] &&
-        animationTypes[props.animationType].next}
-        {...props.customAnimation && props.customAnimation.next}
-        delay={props.animationDelay || 100}
-        reset={state.reset}
-      >
-        {(style: React.CSSProperties) => (
-          <div style={{ ...styles.item, ...style }} className="animated-carousel-item">
-            {props.slides[state.nextActive]}
-          </div>
-        )}
-      </Animated>
+      <div style={{ ...styles.item, ...activeStyles }} className="animated-carousel-item">
+        {props.slides[state.active]}
+      </div>
+      <div style={{ ...styles.item, ...nextStyles }} className="animated-carousel-item">
+        {props.slides[state.nextActive]}
+      </div>
     </div>
   );
 }
