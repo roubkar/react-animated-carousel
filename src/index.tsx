@@ -7,8 +7,9 @@ interface ICarouselProps
   duration?: number;
   animationDuration?: number;
   animationTimingFunction?: string;
-  animationType?: "fade" | "slideLeft" | "slideRight";
+  animationType?: "FADE" | "SLIDE_LEFT" | "SLIDE_RIGHT";
   animationDelay?: number;
+  withNavigation?: boolean;
   customAnimation?: {
     active: {
       from: React.CSSProperties,
@@ -31,20 +32,26 @@ interface ICarouselState
 export default function Carousel(props: ICarouselProps): React.ReactElement
 {
   let [state, dispatch] = React.useReducer(
-    (state: ICarouselState, action: { type: string }) =>
+    (state: ICarouselState, action: { type: string, index?: number }) =>
     {
       switch (action.type)
       {
-        case "next":
+        case "NEXT":
           return {
             active: state.nextActive,
             nextActive: (state.nextActive + 1) % props.slides.length,
             reset: !state.reset
           };
-        case "bringNext":
+        case "BRING_NEXT":
           return {
             active: state.active,
             nextActive: state.nextActive,
+            reset: !state.reset
+          };
+        case "CUSTOM":
+          return {
+            active: state.active,
+            nextActive: action.index,
             reset: !state.reset
           };
         default:
@@ -72,30 +79,37 @@ export default function Carousel(props: ICarouselProps): React.ReactElement
     reset: state.reset
   });
 
+  let timerId1 = React.useRef();
+  let timerId2 = React.useRef();
+
   React.useEffect(() =>
   {
-    let timerId = setTimeout(() =>
+    timerId1.current = setTimeout(() =>
     {
-      clearTimeout(timerId);
-      dispatch({ type: "next" });
+      dispatch({ type: "NEXT" });
     }, props.duration || 1000);
-    return () =>
-    {
-      clearTimeout(timerId);
-    };
+    return () => clearTimeout(timerId1.current);
   }, [state.nextActive]);
+
   React.useEffect(() =>
   {
-    let timerId = setTimeout(() =>
+    timerId2.current = setTimeout(() =>
     {
-      clearTimeout(timerId);
-      dispatch({ type: "bringNext" });
+      dispatch({ type: "BRING_NEXT" });
     }, props.duration || 1000);
-    return () =>
-    {
-      clearTimeout(timerId);
-    };
+    return () => clearTimeout(timerId2.current);
   }, [state.active]);
+
+  function setIndex(index: number): void
+  {
+    clearTimeout(timerId1.current);
+    clearTimeout(timerId2.current);
+    dispatch({ type: "CUSTOM", index });
+    timerId1.current = setTimeout(() =>
+    {
+      dispatch({ type: "NEXT" });
+    }, props.duration || 1000);
+  }
 
   return (
     <div style={styles.container} className="animated-carousel-container">
@@ -105,6 +119,19 @@ export default function Carousel(props: ICarouselProps): React.ReactElement
       <div style={{ ...styles.item, ...nextStyles }} className="animated-carousel-item">
         {props.slides[state.nextActive]}
       </div>
+      {props.withNavigation ? (
+        <div className="animated-carousel-dots">
+          {props.slides.map((slide, index) => (
+            <button
+              key={`${index}`}
+              className={`animated-carousel-dot ${
+                index === state.nextActive ? "active" : ""
+                }`}
+              onClick={(e: React.SyntheticEvent) => setIndex(index)}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -124,7 +151,7 @@ let styles = {
 };
 
 const animationTypes = {
-  fade: {
+  FADE: {
     active: {
       from: { opacity: 1 },
       to: { opacity: 0 }
@@ -134,7 +161,7 @@ const animationTypes = {
       to: { opacity: 1 }
     }
   },
-  slideLeft: {
+  SLIDE_LEFT: {
     active: {
       from: { transform: "translateX(0)" },
       to: { transform: "translateX(-100%)" }
@@ -144,7 +171,7 @@ const animationTypes = {
       to: { transform: "translateX(0%)" }
     }
   },
-  slideRight: {
+  SLIDE_RIGHT: {
     active: {
       from: { transform: "translateX(0)" },
       to: { transform: "translateX(100%)" }
