@@ -24,6 +24,7 @@ interface ICarouselState
 {
   active: number;
   nextActive: number;
+  reset: boolean;
 }
 
 export default function Carousel(props: ICarouselProps): React.ReactElement
@@ -36,18 +37,20 @@ export default function Carousel(props: ICarouselProps): React.ReactElement
         case "next":
           return {
             active: state.nextActive,
-            nextActive: (state.nextActive + 1) % props.slides.length
+            nextActive: (state.nextActive + 1) % props.slides.length,
+            reset: !state.reset
           };
         case "bringNext":
           return {
             active: state.active,
-            nextActive: state.nextActive
+            nextActive: state.nextActive,
+            reset: !state.reset
           };
         default:
           throw new Error();
       }
     },
-    { active: -1, nextActive: 0 }
+    { active: -1, nextActive: 0, reset: false }
   );
   React.useEffect(() =>
   {
@@ -81,8 +84,8 @@ export default function Carousel(props: ICarouselProps): React.ReactElement
         {...animationTypes[props.animationType] &&
         animationTypes[props.animationType].active}
         {...props.customAnimation && props.customAnimation.active}
-        delay={props.animationDelay}
-        key={`active${state.nextActive}`}
+        delay={props.animationDelay || 100}
+        reset={state.reset}
       >
         {style => (
           <div style={{ ...styles.item, ...style }} className="animated-carousel-item">
@@ -96,8 +99,8 @@ export default function Carousel(props: ICarouselProps): React.ReactElement
         {...animationTypes[props.animationType] &&
         animationTypes[props.animationType].next}
         {...props.customAnimation && props.customAnimation.next}
-        delay={props.animationDelay}
-        key={`next${state.nextActive}`}
+        delay={props.animationDelay || 100}
+        reset={state.reset}
       >
         {(style: React.CSSProperties) => (
           <div style={{ ...styles.item, ...style }} className="animated-carousel-item">
