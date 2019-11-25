@@ -19,11 +19,13 @@ interface ICarouselProps {
       to: React.CSSProperties;
     };
   };
+  animateOnMount?: boolean;
 }
 
 interface ICarouselState {
   active: number;
   nextActive: number;
+  animate: boolean;
 }
 
 export default function Carousel(props: ICarouselProps): React.ReactElement {
@@ -33,23 +35,26 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
         case "NEXT":
           return {
             active: state.nextActive,
-            nextActive: (state.nextActive + 1) % props.slides.length
+            nextActive: (state.nextActive + 1) % props.slides.length,
+            animate: true
           };
         case "BRING_NEXT":
           return {
             active: state.active,
-            nextActive: state.nextActive
+            nextActive: state.nextActive,
+            animate: true
           };
         case "CUSTOM":
           return {
             active: state.nextActive,
-            nextActive: action.index
+            nextActive: action.index,
+            animate: true
           };
         default:
           throw new Error();
       }
     },
-    { active: -1, nextActive: 0 }
+    { active: -1, nextActive: 0, animate: !!props.animateOnMount }
   );
 
   let timerId1: React.MutableRefObject<number> = React.useRef();
@@ -96,7 +101,7 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
       >
         {style => (
           <div
-            style={{ ...styles.item, ...style }}
+            style={{ ...styles.item, ...(state.animate && style) }}
             className="animated-carousel-item"
           >
             {props.slides[state.active]}
@@ -113,7 +118,7 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
       >
         {style => (
           <div
-            style={{ ...styles.item, ...style }}
+            style={{ ...styles.item, ...(state.animate && style) }}
             className="animated-carousel-item"
           >
             {props.slides[state.nextActive]}
