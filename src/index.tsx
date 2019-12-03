@@ -1,31 +1,19 @@
 import * as React from "react";
-import { Animated } from "r-animated";
 
 interface ICarouselProps {
   slides: React.ReactElement[];
+  chachedSlides?: boolean;
   duration?: number;
   animationDuration?: number;
   animationTimingFunction?: string;
-  animationType?: "FADE" | "SLIDE_LEFT" | "SLIDE_RIGHT";
+  animationType?: "FADE" | "SLIDE" | "ZOOM";
   animationDelay?: number;
   withNavigation?: boolean;
-  customAnimation?: {
-    active: {
-      from: React.CSSProperties;
-      to: React.CSSProperties;
-    };
-    next: {
-      from: React.CSSProperties;
-      to: React.CSSProperties;
-    };
-  };
-  animateOnMount?: boolean;
 }
 
 interface ICarouselState {
   active: number;
   nextActive: number;
-  animate: boolean;
 }
 
 export default function Carousel(props: ICarouselProps): React.ReactElement {
@@ -35,26 +23,18 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
         case "NEXT":
           return {
             active: state.nextActive,
-            nextActive: (state.nextActive + 1) % props.slides.length,
-            animate: true
-          };
-        case "BRING_NEXT":
-          return {
-            active: state.active,
-            nextActive: state.nextActive,
-            animate: true
+            nextActive: (state.nextActive + 1) % props.slides.length
           };
         case "CUSTOM":
           return {
             active: state.nextActive,
-            nextActive: action.index,
-            animate: true
+            nextActive: action.index
           };
         default:
           throw new Error();
       }
     },
-    { active: -1, nextActive: 0, animate: !!props.animateOnMount }
+    { active: -1, nextActive: 0 }
   );
 
   let timerId1: React.MutableRefObject<number> = React.useRef();
@@ -68,14 +48,6 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
     return () => clearTimeout(timerId1.current);
   }, [state.nextActive, props.duration]);
 
-  React.useEffect(() => {
-    clearTimeout(timerId2.current);
-    timerId2.current = setTimeout(() => {
-      dispatch({ type: "BRING_NEXT" });
-    }, props.duration || 1000);
-    return () => clearTimeout(timerId2.current);
-  }, [state.active, props.duration]);
-
   function setIndex(index: number): void {
     clearTimeout(timerId1.current);
     clearTimeout(timerId2.current);
@@ -86,46 +58,28 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
   }
 
   return (
-    <div
-      style={styles.container}
-      className="animated-carousel-container"
-      key={state.nextActive + 10}
-    >
-      <Animated
-        duration={props.animationDuration}
-        timingFunction={props.animationTimingFunction}
-        {...animationTypes[props.animationType] &&
-          animationTypes[props.animationType].active}
-        {...props.customAnimation && props.customAnimation.active}
-        delay={props.animationDelay || 100}
-      >
-        {style => (
-          <div
-            style={{ ...styles.item, ...(state.animate && style) }}
-            className="animated-carousel-item"
-          >
-            {props.slides[state.active]}
-          </div>
-        )}
-      </Animated>
-      <Animated
-        duration={props.animationDuration}
-        timingFunction={props.animationTimingFunction}
-        {...animationTypes[props.animationType] &&
-          animationTypes[props.animationType].next}
-        {...props.customAnimation && props.customAnimation.next}
-        delay={props.animationDelay || 100}
-      >
-        {style => (
-          <div
-            style={{ ...styles.item, ...(state.animate && style) }}
-            className="animated-carousel-item"
-          >
-            {props.slides[state.nextActive]}
-          </div>
-        )}
-      </Animated>
-      {props.withNavigation ? (
+    <div style={styles.container} className="animated-carousel-container">
+      {props.slides.map((slide, index) => (
+        <div
+          key={index}
+          style={{
+            ...styles.item,
+            ...getAnimationStyle({
+              index,
+              activeIndex: state.active,
+              nextActiveIndex: state.nextActive,
+              animationType: props.animationType,
+              duration: props.animationDuration,
+              timingFunction: props.animationTimingFunction,
+              animationDelay: props.animationDelay
+            })
+          }}
+          className="animated-carousel-item"
+        >
+          {slide}
+        </div>
+      ))}
+      {props.withNavigation && (
         <div className="animated-carousel-dots">
           {props.slides.map((slide, index) => (
             <button
@@ -137,7 +91,7 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
             />
           ))}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
@@ -152,39 +106,45 @@ let styles: { [key: string]: React.CSSProperties } = {
   item: {
     position: "absolute",
     width: "100%",
-    height: "100%"
+    height: "100%",
+    objectFit: "cover"
   }
 };
 
-const animationTypes = {
-  FADE: {
-    active: {
-      from: { opacity: 1 },
-      to: { opacity: 0 }
-    },
-    next: {
-      from: { opacity: 0.19 },
-      to: { opacity: 1 }
-    }
-  },
-  SLIDE_LEFT: {
-    active: {
-      from: { transform: "translateX(0)" },
-      to: { transform: "translateX(-100%)" }
-    },
-    next: {
-      from: { transform: "translateX(100%)" },
-      to: { transform: "translateX(0%)" }
-    }
-  },
-  SLIDE_RIGHT: {
-    active: {
-      from: { transform: "translateX(0)" },
-      to: { transform: "translateX(100%)" }
-    },
-    next: {
-      from: { transform: "translateX(-100%)" },
-      to: { transform: "translateX(0%)" }
-    }
+function getAnimationStyle({
+  index,
+  activeIndex,
+  nextActiveIndex,
+  animationType,
+  duration,
+  timingFunction,
+  animationDelay
+}) {
+  let style;
+  switch (animationType) {
+    case "FADE":
+      style = {
+        opacity: nextActiveIndex === index ? 1 : 0
+      };
+      break;
+    case "SLIDE":
+      style = {
+        transform: `translateX(${(index - nextActiveIndex) * 100}%)`
+      };
+      break;
+    case "ZOOM":
+      style = {
+        transform: `scale(${nextActiveIndex === index ? 1 : 2})`,
+        opacity: nextActiveIndex === index ? 1 : 0
+      };
+      break;
+    default:
+      style = {};
   }
-};
+
+  return {
+    ...style,
+    transition: `all ${(duration || 700) / 1000}s  ${timingFunction ||
+      "cubic-bezier(0.1, 0.99, 0.1, 0.99)"} ${(animationDelay || 100) / 1000}s`
+  };
+}
