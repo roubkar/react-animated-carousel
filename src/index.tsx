@@ -6,7 +6,7 @@ interface ICarouselProps {
   duration?: number;
   animationDuration?: number;
   animationTimingFunction?: string;
-  animationType?: "FADE" | "SLIDE" | "ZOOM";
+  animationType?: "FADE" | "SLIDE" | "ZOOM" | "NO";
   animationDelay?: number;
   withNavigation?: boolean;
 }
@@ -138,13 +138,19 @@ function getAnimationStyle({
         opacity: nextActiveIndex === index ? 1 : 0
       };
       break;
+    case "NO":
+      style = {
+        opacity: nextActiveIndex === index ? 1 : 0,
+        transition: "none"
+      };
+      break;
     default:
       style = {};
   }
 
   return {
-    ...style,
     transition: `all ${(duration || 700) / 1000}s  ${timingFunction ||
-      "cubic-bezier(0.1, 0.99, 0.1, 0.99)"} ${(animationDelay || 100) / 1000}s`
+      "cubic-bezier(0.1, 0.99, 0.1, 0.99)"} ${(animationDelay || 100) / 1000}s`,
+    ...style,
   };
 }

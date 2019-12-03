@@ -1,6 +1,6 @@
 {
   "name": "react-animated-carousel",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "A simple carousel component for React",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -17,8 +17,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "types": "dist/index.d.ts",
-  "dependencies": {
-  },
+  "dependencies": {},
   "peerDependencies": {
     "react": "^16.12.0"
   },
