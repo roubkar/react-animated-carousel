@@ -27,39 +27,29 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
           };
         case "CUSTOM":
           return {
-            active: state.nextActive,
-            nextActive: action.index
+            active: action.index,
+            nextActive: (action.index + 1) % props.slides.length
           };
         default:
           throw new Error();
       }
     },
-    { active: -1, nextActive: 0 }
+    { active: 0, nextActive: 1 }
   );
 
-  let timerId1: React.MutableRefObject<number> = React.useRef();
-  let timerId2: React.MutableRefObject<number> = React.useRef();
+  let timerId: React.MutableRefObject<number> = React.useRef();
 
   React.useEffect(() => {
-    clearTimeout(timerId1.current);
-    timerId1.current = setTimeout(() => {
+    clearTimeout(timerId.current);
+    timerId.current = setTimeout(() => {
       dispatch({ type: "NEXT" });
     }, props.duration || 1000);
-    return () => clearTimeout(timerId1.current);
+    return () => clearTimeout(timerId.current);
   }, [state.nextActive, props.duration]);
-
-  function setIndex(index: number): void {
-    clearTimeout(timerId1.current);
-    clearTimeout(timerId2.current);
-    dispatch({ type: "CUSTOM", index });
-    timerId1.current = setTimeout(() => {
-      dispatch({ type: "BRING_NEXT" });
-    }, props.duration || 1000);
-  }
 
   return (
     <div style={styles.container} className="animated-carousel-container">
-      {props.slides.map((slide, index) => (
+      {(props.slides || []).map((slide, index) => (
         <div
           key={index}
           style={{
@@ -80,14 +70,16 @@ export default function Carousel(props: ICarouselProps): React.ReactElement {
         </div>
       ))}
       {props.withNavigation && (
-        <div className="animated-carousel-dots">
+        <div className="animated-carousel-dots" style={{ zIndex: 1 }}>
           {props.slides.map((slide, index) => (
             <button
               key={`${index}`}
               className={`animated-carousel-dot ${
-                index === state.nextActive ? "active" : ""
-              }`}
-              onClick={(e: React.SyntheticEvent) => setIndex(index)}
+                index === state.active ? "active" : ""
+              }`.trim()}
+              onClick={(e: React.SyntheticEvent) =>
+                dispatch({ type: "CUSTOM", index })
+              }
             />
           ))}
         </div>
@@ -120,37 +112,35 @@ function getAnimationStyle({
   timingFunction,
   animationDelay
 }) {
-  let style;
+  let style: React.CSSProperties;
   switch (animationType) {
     case "FADE":
       style = {
-        opacity: nextActiveIndex === index ? 1 : 0
+        opacity: activeIndex === index ? 1 : 0
       };
       break;
     case "SLIDE":
       style = {
-        transform: `translateX(${(index - nextActiveIndex) * 100}%)`
+        transform: `translateX(${(index - activeIndex) * 100}%)`
       };
       break;
     case "ZOOM":
       style = {
-        transform: `scale(${nextActiveIndex === index ? 1 : 2})`,
-        opacity: nextActiveIndex === index ? 1 : 0
-      };
-      break;
-    case "NO":
-      style = {
-        opacity: nextActiveIndex === index ? 1 : 0,
-        transition: "none"
+        transform: `scale(${activeIndex === index ? 1 : 2})`,
+        opacity: activeIndex === index ? 1 : 0
       };
       break;
     default:
-      style = {};
+      style = {
+        opacity: activeIndex === index ? 1 : 0,
+        transition: "none"
+      };
   }
 
   return {
     transition: `all ${(duration || 700) / 1000}s  ${timingFunction ||
       "cubic-bezier(0.1, 0.99, 0.1, 0.99)"} ${(animationDelay || 100) / 1000}s`,
     ...style,
+    zIndex: activeIndex === index ? 1 : 0
   };
 }
