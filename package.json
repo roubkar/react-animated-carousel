@@ -1,6 +1,6 @@
 {
   "name": "react-animated-carousel",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "A simple carousel component for React",
   "main": "dist/index.js",
   "module": "dist/index.es.js",

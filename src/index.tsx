@@ -6,7 +6,7 @@ interface ICarouselProps {
   duration?: number;
   animationDuration?: number;
   animationTimingFunction?: string;
-  animationType?: "FADE" | "SLIDE" | "ZOOM" | "NO";
+  animationType?: "FADE" | "SLIDE" | "ZOOM";
   animationDelay?: number;
   withNavigation?: boolean;
 }
@@ -16,9 +16,14 @@ interface ICarouselState {
   nextActive: number;
 }
 
+interface IAction {
+  type: string;
+  index?: number;
+}
+
 export default function Carousel(props: ICarouselProps): React.ReactElement {
   let [state, dispatch] = React.useReducer(
-    (state: ICarouselState, action: { type: string; index?: number }) => {
+    (state: ICarouselState, action: IAction) => {
       switch (action.type) {
         case "NEXT":
           return {
@@ -113,21 +118,27 @@ function getAnimationStyle({
   animationDelay
 }) {
   let style: React.CSSProperties;
+  let transitionPostfix: string = `${(duration || 700) /
+    1000}s  ${timingFunction ||
+    "cubic-bezier(0.1, 0.99, 0.1, 0.99)"} ${(animationDelay || 100) / 1000}s`;
   switch (animationType) {
     case "FADE":
       style = {
-        opacity: activeIndex === index ? 1 : 0
+        opacity: activeIndex === index ? 1 : 0,
+        transition: `opacity ${transitionPostfix}`
       };
       break;
     case "SLIDE":
       style = {
-        transform: `translateX(${(index - activeIndex) * 100}%)`
+        transform: `translateX(${(index - activeIndex) * 100}%)`,
+        transition: `transform ${transitionPostfix}`
       };
       break;
     case "ZOOM":
       style = {
         transform: `scale(${activeIndex === index ? 1 : 2})`,
-        opacity: activeIndex === index ? 1 : 0
+        opacity: activeIndex === index ? 1 : 0,
+        transition: `transform ${transitionPostfix}, opacity ${transitionPostfix}`
       };
       break;
     default:
@@ -138,8 +149,6 @@ function getAnimationStyle({
   }
 
   return {
-    transition: `all ${(duration || 700) / 1000}s  ${timingFunction ||
-      "cubic-bezier(0.1, 0.99, 0.1, 0.99)"} ${(animationDelay || 100) / 1000}s`,
     ...style,
     zIndex: activeIndex === index ? 1 : 0
   };
